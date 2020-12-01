@@ -1,0 +1,2 @@
+#!/bin/bash
+find -name '#*#' -delete -o -name '*~' -delete -o -name '*.swp' -delete -o -name '*.gcno' -delete -o -name '*.gcda' -delete -o -name '*.swn' -delete -o -name '*.swo' -delete -o -name 'a.out' -delete -o -name 'vgcore*' -delete -o -name '*.o' -delete -o -name 'website_test*.html' -delete -o -name 'Ez' -o -name 'unit_tests*.html' -delete -o -name 'unit_tests' -delete
