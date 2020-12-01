@@ -1,0 +1,76 @@
+#!/bin/bash
+# Script to config a wacom graphical tablet
+
+pat='^[+-]?[0-9]+([.][0-9]+)?$'
+
+display_help() {
+    echo "Usage: startwacom [OPTIONS]..."
+    echo -e "Setup a wacom graphical tablet\n"
+    echo "All options are optionnal"
+    echo -e "  -t [x] [y]      Change tablet pixel definition\n                  default values : 15200x9500"
+    echo -e "  -s [x] [y]      Change screen pixel definition\n                  default values : 1920x1080"
+    echo -e "  -o [name]       Change the monitor that the tablet use\n                  default value : eDP-1\n                    You can list your monitors by running : \`xrandr --listmonitors\`"
+}
+
+if [ $# -ge 1 ] && [ $1 = "-h" ] ; then
+    display_help
+else
+    ## To get tablet size run : `xsetwacom --get "$STYLUS_NAME" Area`
+    ## You can get your stylus name by running : `dmesg | grep -i wacom` and copy the follow name (in ''):  input: 'Wacom xxx x x xxx' as
+    ## My table size : 0 0 15200 9500 :
+    tablet_x=15200
+    tablet_y=9500
+
+    ## Set screen size (default : 1920x1080) :
+    screen_x=1920
+    screen_y=1080
+
+    ## Set Screen (default : eDP-1 (my main screen)) :
+    screen="eDP-1"
+
+    for i in $*; do
+        if [ $i = "-t" ] ; then
+            next1=$(( i+2 ))
+            next2=$(( i+3 ))
+            if [ $# -ge $next2 ] && [[ "${!next1}" =~ $pat ]] && [[ "${!next2}" =~ $pat ]] ; then
+                tablet_x=${!next1}
+                tablet_y=${!next2}
+            else
+                echo "-t Option contain few or incorrect arguments"
+                display_help
+            fi
+        elif [ $i = "-s" ] ; then
+            next1=$(( i+2 ))
+            next2=$(( i+3 ))
+            if [ $# -ge $next2 ] && [[ "${!next1}" =~ $pat ]] && [[ "${!next2}" =~ $pat ]] ; then
+                screen_x=${!next1}
+                screen_y=${!next2}
+            else
+                echo "-s Option contain few or incorrect arguments"
+                display_help
+            fi
+        elif [ $i = "-o" ] ; then
+            next=$(( i+2 ))
+            if [ $# -ge $next ] ; then
+                screen="${!next}"
+            else
+                echo "-o Option contain few or incorrect arguments"
+                display_help
+            fi
+        fi
+    done
+
+    ## Set used screen to tablet
+    xsetwacom set "Wacom Intuos S 2 Pen stylus" MapToOutput $screen
+
+    ## Set that the tablet point at a pixel of a screen and not at the last postion
+    xsetwacom set "Wacom Intuos S 2 Pen stylus" mode "Absolute"
+
+    ## Set new area to have good dimensions
+    new_tablet_y=$(( (tablet_x*screen_y)/screen_x ))
+    xsetwacom set "Wacom Intuos S 2 Pen stylus" Area 0 0 $tablet_x $new_tablet_y
+
+    echo -e "\nThe tablet as been successfully config with following parameters :\n"
+    echo -e "Tablet : [x] : $tablet_x\n         [y] : $tablet_y"
+    echo -e "Monitor : \"$screen\"\n  With a definition of : [x] : $screen_x\n                         [y] : $screen_y"
+fi
